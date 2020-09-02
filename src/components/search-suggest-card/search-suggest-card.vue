@@ -1,6 +1,6 @@
 <template>
-	<view class="search-suggest-card">
-	<view @click="onClickHot" class="search-suggest-card" v-for="(item,index) in hotLabelList" :key="index" :class="[item.label_type===12004?'search-suggest-card-hot':'']">
+	<view class="search-suggest-card-wrap">
+	<view @click="onClickHot" class="search-suggest-card" v-for="(item,index) in hotLabels" :key="index" :class="[item.label_type===12004?'search-suggest-card-hot':'']">
 		<image class="icon-label-shop " src="@/static/images/icons/shop.png" v-if="item.label_type===12000||item.label_type===12003"></image>
 		{{item.label_name}}
 	</view>
@@ -22,10 +22,12 @@
 		},
 		data() {
 			return {
-				isHistory: false,
 				hotLabelList: [],
 				yesHistory:true
 			}
+		},
+		mounted(){
+			console.log('==hotLabelList==',this.hotLabelList);
 		},
 		watch:{
 			hotLabels:function(val){

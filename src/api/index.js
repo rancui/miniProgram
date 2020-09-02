@@ -8,3 +8,7 @@ export function getfilterconditions() {
 export function getCategoryIConList(){
 	return request.get(`${baseMockUrl}/getCategoryIConList`)
 }
+
+export function hotlabelAndHistory(){
+	return request.post(`${baseMockUrl}/search/home/hotlabelandhistory`)
+}

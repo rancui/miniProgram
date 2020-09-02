@@ -2,15 +2,9 @@ import axios from "axios-miniprogram";
 // import EventBus from '@/assets/js/eventBus';
 // 基础路径
 // VUE_APP_BASE_URL = 'http://211.95.59.228:8000'
-console.log(axios);
 const baseUrl = 'https://preloanreport.vcredit.com/preLoanReportAPI'; //process.env.VUE_APP_BASE_URL;
 // axios默认设置
 axios.defaults.baseURL = baseUrl;
-// axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded; charset=utf-8';
-// axios.defaults.retry = 2; // 接口失败，允许重复次数
-// axios.defaults.retryDelay = 1000; // 再次发送，间隔时间
-// axios.defaults.timeout = 300000;
-
 // 正在进行中的请求列表
 let pendingList = []; 
 /**
