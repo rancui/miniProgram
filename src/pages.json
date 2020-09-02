@@ -1,0 +1,69 @@
+{
+	// "easycom": {
+	// 	"^u-(.*)": "uview-ui/components/u-$1/u-$1.vue"
+	// },
+	
+	"pages": [ 
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "首页"
+			}
+		},
+		{
+			"path": "pages/search/search",
+			"style": {
+				"navigationBarTitleText": "搜索"
+			}
+		}
+	],
+	"window": {
+	    "navigationBarBackgroundColor": "#fff",
+	    "navigationBarTitleText": "美团外卖",
+	    "navigationBarTextStyle": "black",
+	    "backgroundColor": "#2C2D31",
+	    "backgroundTextStyle": "light",
+	    "enablePullDownRefresh": false
+	  },
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#F8F8F8",
+		"backgroundColor": "#F8F8F8"
+	},
+	"tabBar": {
+	    "color": "#999",
+	    "backgroundColor": "#fafafa",
+	    "selectedColor": "#333",
+	    "borderStyle": "white",
+	    "list": [
+	      {
+	        "text": "首页",
+	        "pagePath": "pages/index/index",
+	        "iconPath": "static/images/tabs/home.png",
+	        "selectedIconPath": "static/images/tabs/home-active.png"
+	      },
+	      {
+	        "text": "订单",
+	        // "pagePath": "pages/orders/orders",
+			 "pagePath": "pages/index/index",
+	        "iconPath": "static/images/tabs/orders.png",
+	        "selectedIconPath": "static/images/tabs/orders-active.png"
+	      },
+	      {
+	        "text": "我的",
+	        // "pagePath": "pages/mine/mine",
+			 "pagePath": "pages/index/index",
+	        "iconPath": "static/images/tabs/user.png",
+	        "selectedIconPath": "static/images/tabs/user-active.png"
+	      }
+	    ],
+	    "position": "bottom"
+	  },
+	  "networkTimeout": {
+	    "request": 5000,
+	    "connectSocket": 5000
+	  },
+	  "debug": false,
+	  "sitemapLocation": "sitemap.json"
+}
