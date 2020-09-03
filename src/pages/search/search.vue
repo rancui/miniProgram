@@ -5,7 +5,7 @@
 				<image class="search-icon" src="@/static/images/icons/search.png"></image>
 				<input v-model="searchValue" type="text" placeholder="占位符" placeholder-class="shop-search-placeholder" @confirm="onClickSearch"
 				 @input="onSearchInput" focus="true" class="index-search-input"/>
-				<view @click="onDeleteKey" class="search-delete-wrap" v-if="!inputShowClear">
+				<view @click="onDeleteKey" class="search-delete-wrap" v-if="inputShowClear">
 					<image class="search-delete-icon" src="@/static/images/icons/clear.png"></image>
 				</view>
 			</view>
@@ -87,7 +87,7 @@
 				hotLabels: [],
 				historyLabels: [],
 				isHistory: true,
-				pageState: "suggest",
+				pageState: "hot",
 				suggest: [],
 				terms: [],
 				search_poi_list: [],
@@ -113,13 +113,14 @@
 			   this.onInput(value);
 			},
 			onInput(arg){
-		
-			   var that = this;
 			   arg = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0]: "";
-			   console.log('====onInput=====',arg);
 			   this.keyword = arg.replace(/\s/g, "");
-               if (clearTimeout(that.to), !(arg = (arg || "").replace(/\s/g, "")) || arg !== this.keyword) return this.keyword = arg;
-               that.to = setTimeout(function() {
+			   void 0 !== this.keyword ? this.pageState = "suggest":this.pageState = "hot";
+			   if (clearTimeout(this.to), !(arg = (arg || "").replace(/\s/g, "")) || arg !== this.keyword) {
+					return this.keyword = arg;
+			   }
+			   var that = this;
+			   this.to = setTimeout(function() {
                   that.onSuggest();
 			   }, that.inputDelay);
 			},
@@ -127,7 +128,9 @@
                return this.keyword;
 			},
 			onSuggest() {
+				
 				this.inputShowClear = Boolean(this.getKeyword());
+				console.log(this.inputShowClear);
 				this.loadSuggest();
 			},
 			loadSuggest(){
