@@ -12,3 +12,11 @@ export function getCategoryIConList(){
 export function hotlabelAndHistory(){
 	return request.post(`${baseMockUrl}/search/home/hotlabelandhistory`)
 }
+export function suggest(){
+	return request.post(`${baseMockUrl}/search/v8/suggest`)
+}
+
+export function food(name){
+	return request.post(`${baseMockUrl}/weapp/v1/poi/food`,{'name':name})
+}
+

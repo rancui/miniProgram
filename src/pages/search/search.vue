@@ -4,7 +4,7 @@
 			<view class="index-search-bg">
 				<image class="search-icon" src="@/static/images/icons/search.png"></image>
 				<input v-model="searchValue" type="text" placeholder="占位符" placeholder-class="shop-search-placeholder" @confirm="onClickSearch"
-				 @input="onSearchInput" focus="true" class="index-search-input"></input>
+				 @input="onSearchInput" focus="true" class="index-search-input"/>
 				<view @click="onDeleteKey" class="search-delete-wrap" v-if="!inputShowClear">
 					<image class="search-delete-icon" src="@/static/images/icons/clear.png"></image>
 				</view>
@@ -28,68 +28,119 @@
 			</view>
 		</view>
 
+	     <!-- <scroll-view class="search-list-container" scrollY="true" v-if="pageState==='suggest'"> -->
+		<scroll-view class="search-list-container" scrollY="true" v-if="pageState==='suggest'">
+	        <view class="search-suggest-wrap">
+	            <block v-for="(item,idx) in suggest" :key="idx">
+	                <view  v-if="item.type===0" @click="onClickSuggestShop(item.content)" class="search-poi">
+	                    <view class="search-poi-content">
+	                        <image class="search-poi-pic" mode="aspectFill" src="@/static/images/icons/shop.png"></image>
+	                        <view class="search-poi-info">
+	                            <view class="search-poi-name" :style="{width:item.wm_poi_name_width_percent_style}">
+	                            <text>{{item.content}}</text>
+								</view>
+	                            <image class="search-poi-mt-deliver" src="@/static/images/icons/deliver.png" v-if="item.poi_addition_info.delivery_type"></image>
+								<text v-if="item.poi_addition_info.label_info.length>0">
+	                              <text class="search-poi-discount"  v-for="(labelInfo,index) in  item.poi_addition_info.label_info" :key="index">{{labelInfo.content}}</text>
+								</text>
+								<search-suggest-poi-status :wm_poi_business_status="item"></search-suggest-poi-status>
+	                        
+							</view>
+	                    </view>
+	                </view>
+	                <view v-else @click="onClickSuggestWord"  class="search-poi">
+	                    <image class="search-query-pic" src="@/static/images/icons/magnify-glass.png"></image>
+	                    <view class="search-poi-query-content">
+	                        <view class="search-poi-info search-poi-query" :style="{width:item.wm_poi_query_width_percent_style}">
+							 <text>{{item.content}}</text>
+							</view>
+	                    </view>
+	                    <view class="search-query-count">{{item.query_addition_info.resultNum}}</view>
+	                </view>
+	            </block>
+	        </view>
+	    </scroll-view>
+	 
 	</view>
 
 </template>
 
 <script>
 	import SearchSuggestCard from '@/components/search-suggest-card/search-suggest-card.vue';
+	import SearchSuggestPoiStatus from '@/components/search-suggest-poi-status/search-suggest-poi-status.vue';
 	import {
-		hotlabelAndHistory
+		hotlabelAndHistory,
+		suggest,food
 	} from '@/api/index.js'
 	export default {
 		components: {
-			SearchSuggestCard
+			SearchSuggestCard,
+			SearchSuggestPoiStatus
 		},
 		data() {
 			return {
 				inputFocus: true,
 				inputShowClear: false,
 				keywordLabel: "",
+				keyword:"",
 				searchValue: "",
 				hotLabels: [],
 				historyLabels: [],
 				isHistory: true,
-				pageState: "hot"
-				// hotLabels: [],
-				// historyLabels: I.get(),
-				// inputShowClear: false,
-				// keywordValue: "",
-				// keywordLabel: "",
-				// pageState: "hot",
-				// suggest: [],
-				// terms: [],
-				// search_poi_list: [],
-				// recommend_poi_list: [],
-				// poilistActvsShown: {},
-				// productShown: {},
-				// has_next_page: false,
-				// inputFocus: true
+				pageState: "suggest",
+				suggest: [],
+				terms: [],
+				search_poi_list: [],
+				inputDelay:100,			
+				to:null
+
 			}
 		},
 		created() {
-				// var that = this;
-				// hotlabelAndHistory().then(function(res) {
-				// 	console.log(123);
-				// 	var result = res.data;
-				// 	that.hotLabels = result.labels;
-				// }).catch(function(e) {
-				// 	console.log(e);
-				// });
 				this.getHotlabelAndHistory();
 		},
 		methods: {
-
 			getHotlabelAndHistory() {
 				var that = this;
 				hotlabelAndHistory().then(function(res) {
 					var result = res.data;
 					that.hotLabels = result.labels;
 					console.log(that.hotLabels);
-
-				}).catch(function(e) {
-					console.log(e);
 				})
+			},
+			onSearchInput(e){
+			   var value = e.detail.value;
+			   this.onInput(value);
+			},
+			onInput(arg){
+		
+			   var that = this;
+			   arg = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0]: "";
+			   console.log('====onInput=====',arg);
+			   this.keyword = arg.replace(/\s/g, "");
+               if (clearTimeout(that.to), !(arg = (arg || "").replace(/\s/g, "")) || arg !== this.keyword) return this.keyword = arg;
+               that.to = setTimeout(function() {
+                  that.onSuggest();
+			   }, that.inputDelay);
+			},
+			getKeyword(){
+               return this.keyword;
+			},
+			onSuggest() {
+				this.inputShowClear = Boolean(this.getKeyword());
+				this.loadSuggest();
+			},
+			loadSuggest(){
+			   var that = this;
+               suggest().then(function(res){
+				   let result = res.data;
+				   that.suggest = result.suggest;
+			   });
+			},
+			onClickSuggestShop(val){
+			   food(val).then(function(res){
+					let result = res.data;
+			   });
 			}
 		}
 	}
@@ -253,101 +304,7 @@
 		background-color: #fff;
 	}
 
-	.search-poi-status-content {
-		margin-top: 5rpx;
-	}
-
-	.search-poi-status {
-		position: relative;
-		display: inline-block;
-		font-size: 20rpx;
-	}
-
-	.search-poi-status-title {
-		position: relative;
-		display: inline-block;
-		color: #fff;
-		padding: 2rpx 8rpx;
-	}
-
-	.search-poi-status-description {
-		display: inline-block;
-		height: 100%;
-		padding: 0 7rpx;
-	}
-
-	.search-poi-status.deliverying {
-		font-size: 22rpx;
-		color: #666;
-	}
-
-	.deliverying .deliverying-sep-line {
-		color: #e4e4e4;
-		margin: 0 10rpx;
-		display: inline-block;
-		height: 18rpx;
-		overflow: hidden;
-		margin-bottom: 2rpx;
-	}
-
-	.search-poi-status.booking {
-		color: #37A2EE;
-	}
-
-	.search-poi-status.booking:after {
-		content: '';
-		position: absolute;
-		left: 0;
-		top: 0;
-		border: 1rpx solid #37A2EE;
-		width: 200%;
-		height: 200%;
-		transform-origin: 0 0;
-		transform: scale(0.5, 0.5);
-		box-sizing: border-box;
-	}
-
-	.booking .search-poi-status-title {
-		background-color: #37A2EE;
-	}
-
-	.search-poi-status.only {
-		color: #FFA735;
-	}
-
-	.search-poi-status.only:after {
-		content: '';
-		position: absolute;
-		left: 0;
-		top: 0;
-		border: 1rpx solid #FFA735;
-		width: 200%;
-		height: 200%;
-		transform-origin: 0 0;
-		transform: scale(0.5, 0.5);
-		box-sizing: border-box;
-	}
-
-	.only .search-poi-status-title {
-		background-color: #FFA735;
-	}
-
-	.search-poi-status.breaking {
-		color: #666;
-	}
-
-	.search-poi-status.breaking:after {
-		content: '';
-		position: absolute;
-		left: 0;
-		top: 0;
-		border: 1rpx solid #666;
-		width: 200%;
-		height: 200%;
-		transform-origin: 0 0;
-		transform: scale(0.5, 0.5);
-		box-sizing: border-box;
-	}
+	
 
 	.breaking .search-poi-status-title {
 		display: none;
