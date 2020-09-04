@@ -397,19 +397,20 @@ P = {
             url: "../restaurant/restaurant?poi_id=" + e
         });
     },
-    loadSearch: function(e) {
-        var i = this;
+    loadSearch: function(e) { // e是boolean值
+        var that = this;
         return t(a.default.mark(function t() {
             var r, s, n, o, c, u, l, h, d, g, _, p, f, v, w, m, k, x;
+
             return a.default.wrap(function(t) {
                 for (;;) switch (t.prev = t.next) {
                   case 0:
-                    return i.loading(!0), i.is_scroll_loading = !0, e && (i.data.search_poi_list = [], 
-                    i.data.recommend_poi_list = [], i.page_index = 0), r = i.data.keywordLabel, s = i.searchManager, 
-                    n = i.searchTicket, o = i.suggestTicket, c = n.get(), u = (i.data.search_poi_list || []).length || 0, 
+                    return that.loading(!0), that.is_scroll_loading = !0, e && (that.data.search_poi_list = [], 
+                    that.data.recommend_poi_list = [], that.page_index = 0), r = that.data.keywordLabel, s = that.searchManager, 
+                    n = that.searchTicket, o = that.suggestTicket, c = n.get(), u = (that.data.search_poi_list || []).length || 0, 
                     o.cancel(), t.prev = 7, t.next = 10, b({
                         keyword: s.getKeyword() || r,
-                        page_index: i.page_index
+                        page_index: that.page_index
                     });
 
                   case 10:
@@ -431,13 +432,13 @@ P = {
                             tgt_stids: f,
                             search_log_Id: v
                         };
-                        e.tgt_stids = f, e.search_log_Id = v, i.isAcurrateShop(a) ? (i.lxAcurrateShopView(e, n), 
+                        e.tgt_stids = f, e.search_log_Id = v, that.isAcurrateShop(a) ? (isAcurrateShop.lxAcurrateShopView(e, n), 
                         s.forEach(function(t) {
-                            i.lxAcurrateShopFoodView(t, e, n);
-                        })) : i.isRelativeShop(a) && (i.lxRelativeShopView(e, n), s.forEach(function(t) {
-                            i.lxRelativeShopFoodView(t, e, n);
+                            that.lxAcurrateShopFoodView(t, e, n);
+                        })) : that.isRelativeShop(a) && (that.lxRelativeShopView(e, n), s.forEach(function(t) {
+                            that.lxRelativeShopFoodView(t, e, n);
                         }));
-                    }), i.setData({
+                    }), that.setData({
                         pageState: "search",
                         has_next_page: p,
                         search_poi_list: i.data.search_poi_list.concat(h),
@@ -445,7 +446,7 @@ P = {
                         non_delivery_poi_info: g,
                         keywordValue: k,
                         inputShowClear: !0
-                    }), i.is_scroll_loading = !1, i.lxSearchResultView({
+                    }), that.is_scroll_loading = false, that.lxSearchResultView({
                         tgt_stids: f,
                         keyword: k
                     })), t.next = 25;
@@ -455,13 +456,13 @@ P = {
                     t.prev = 21, t.t0 = t.catch(7), x = t.t0.message, console.error(x);
 
                   case 25:
-                    i.loading(!1);
+                    i.loading(false);
 
                   case 26:
                   case "end":
                     return t.stop();
                 }
-            }, t, i, [ [ 7, 21 ] ]);
+            }, t, that, [ [ 7, 21 ] ]);
         }))();
     },
     onClickPoilistItem: function(e) {
@@ -748,8 +749,8 @@ P = {
         });
     },
     onScrollBottom: function() {
-        this.is_scroll_loading || this.data.has_next_page && (this.page_index = this.page_index + 1, 
-        this.loadSearch(!1));
+        this.is_scroll_loading || this.data.has_next_page && 
+        (this.page_index = this.page_index + 1, this.loadSearch(!1));
     },
     onDeleteKey: function() {
         this.searchManager.reset(), this.searchTicket.cancel(), this.suggestTicket.cancel(), 

@@ -1,11 +1,17 @@
-var e = function(e, obj) {
+
+var domainObj = {
+    "main-domain": "wx.waimai.meituan.com",
+    "market-domain": "marketing.waimai.meituan.com"
+}
+
+var e = function(domainObj, obj) {
     return Object.keys(obj).reduce(function(total, currentValue) { // total,currentValue
         var currentUrl = obj[currentValue];
-        return currentUrl.indexOf("/weapp/") > -1 ? 
-            total[currentValue] = "https://" + e["main-domain"] + currentUrl 
-            : currentUrl.indexOf("/o/wxapp/") > -1 ? total[currentValue] = "https://" + e["market-domain"] + currentUrl 
-            : total[currentValue] = "https://" + e["main-domain"] + currentUrl, 
-        total;
+        currentUrl.indexOf("/weapp/") > -1 ? 
+            total[currentValue] = "https://" + domainObj["main-domain"] + currentUrl 
+            : currentUrl.indexOf("/o/wxapp/") > -1 ? total[currentValue] = "https://" + domainObj["market-domain"] + currentUrl 
+            : total[currentValue] = "https://" + domainObj["main-domain"] + currentUrl;
+        return total;
     }, {});
 };
 module.exports = function(p) {

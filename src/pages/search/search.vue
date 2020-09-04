@@ -1,17 +1,20 @@
 <template>
 	<view class="page-container">
 		<view class="search-container">
+			<!-- 搜索框 -->
 			<view class="index-search-bg">
 				<image class="search-icon" src="@/static/images/icons/search.png"></image>
-				<input v-model="searchValue" type="text" placeholder="占位符" placeholder-class="shop-search-placeholder" @confirm="onClickSearch"
+				<input v-model="keywordValue" type="text" :placeholder="keywordLabel||'请输入商家或商品名称'" placeholder-class="shop-search-placeholder" @confirm="onClickSearch"
 				 @input="onSearchInput" focus="true" class="index-search-input"/>
+				 <!-- 删除按钮icon -->
 				<view @click="onDeleteKey" class="search-delete-wrap" v-if="inputShowClear">
 					<image class="search-delete-icon" src="@/static/images/icons/clear.png"></image>
 				</view>
 			</view>
+			<!-- 搜索按钮 -->
 			<button @click="onClickSearch" class="ui-btn ui-btn-no-border btn-search " :class="[!inputShowClear&&!keywordLabel?'search-btn-disabled':'']">搜索</button>
 		</view>
-
+        <!-- 热门搜索 -->
 		<view v-if="pageState==='hot'">
 			<view class="search-hot-container" v-if="hotLabels.length">
 				<view class="search-title">热门搜索</view>
@@ -28,8 +31,8 @@
 			</view>
 		</view>
 
-	     <!-- <scroll-view class="search-list-container" scrollY="true" v-if="pageState==='suggest'"> -->
-		<scroll-view class="search-list-container" scrollY="true" v-if="pageState==='suggest'">
+	<!-- 输入关键字，出现搜索展示层 -->
+	<scroll-view class="search-list-container" scrollY="true" v-if="pageState==='suggest'">
 	        <view class="search-suggest-wrap">
 	            <block v-for="(item,idx) in suggest" :key="idx">
 	                <view  v-if="item.type===0" @click="onClickSuggestShop(item.content)" class="search-poi">
@@ -59,8 +62,42 @@
 	                </view>
 	            </block>
 	        </view>
-	    </scroll-view>
+	</scroll-view>
 	 
+
+    <scroll-view @scrolltolower="onScrollBottom" class="search-list-container" scrollY="true" v-if="pageState==='search'">
+        <view class="poi-wrap">
+            <navigator class="non-delivery-wrap" :url="'../non-delivery/non-delivery?keyword='+keywordValue||keywordLabel" v-if="non_delivery_poi_info.is_show_nondelivery">
+                <image class="non-delivery" :src="non_delivery_poi_info.poi_nondelivery_picture"></image>
+                <view class="non-delivery-text">
+                    <text :class="[contextItem.highLight===true?'poi-non-highlight':'']" v-for="(contextItem,index) in non_delivery_poi_info.poi_nondelivery_context" :key="index">{{contextItem.name}}</text>
+                </view>
+                <view class="non-delivery-arrow ui-arrow ui-arrow-right"></view>
+            </navigator>
+            <view class="non-delivery-wrap" v-if="!non_delivery_poi_info.is_show_nondelivery&&search_poi_list.length===0">
+                <image class="non-delivery" src="@/static/images/icons/null-search.png"></image>
+                <text>抱歉，未能找到您搜索的商家或商品</text>
+            </view>
+
+            <search-poi-list :poilist="search_poi_list" :productShown="productShown" :poilistActvsShown="poilistActvsShown" v-if="search_poi_list.length>0"></search-poi-list>
+            
+			<view class="poi-guess-tab" v-if="recommend_poi_list.length>0">
+                <view class="poi-guess-title">
+                    <view class="poi-guess-leftline"></view>
+                    <image class="poi-guess-heart" src="@/static/images/icons/guess_like.png"></image> 猜你喜欢 <view class="poi-guess-rightline"></view>
+                </view>
+            </view>
+      
+			<search-poi-list :poilist="recommend_poi_list" :productShown="productShown" :poilistActvsShown="poilistActvsShown" v-if="recommend_poi_list.length>0"></search-poi-list>
+			
+			<view class="loading-data flex-center" v-if="has_next_page">
+                <view class="ui-loading-logo ui-loading-logo-animate"></view> 努力加载中... 
+			</view>
+        </view>
+    </scroll-view>
+
+
+
 	</view>
 
 </template>
@@ -68,32 +105,44 @@
 <script>
 	import SearchSuggestCard from '@/components/search-suggest-card/search-suggest-card.vue';
 	import SearchSuggestPoiStatus from '@/components/search-suggest-poi-status/search-suggest-poi-status.vue';
+	import searchPoiList from '@/components/search-poi-list/search-poi-list.vue';
 	import {
 		hotlabelAndHistory,
-		suggest,food
+		suggest,suggest_non,food,
+		homepage
 	} from '@/api/index.js'
 	export default {
 		components: {
 			SearchSuggestCard,
-			SearchSuggestPoiStatus
+			SearchSuggestPoiStatus,
+			searchPoiList
 		},
 		data() {
 			return {
 				inputFocus: true,
 				inputShowClear: false,
 				keywordLabel: "",
-				keyword:"",
-				searchValue: "",
+				keywordValue: "",
 				hotLabels: [],
 				historyLabels: [],
 				isHistory: true,
-				pageState: "hot",
+				pageState: "search",
 				suggest: [],
 				terms: [],
-				search_poi_list: [],
 				inputDelay:100,			
-				to:null
-
+				to:null,
+				page_index: 0,
+				is_scroll_loading: false,
+				category_type: 0,
+				// suggest_global_id: K(),
+				suggestTicket: null,
+				searchTicket: null,
+				search_poi_list: [],
+				recommend_poi_list: [],
+				poilistActvsShown: {},
+				productShown: {},
+				has_next_page: false,
+				inputFocus: true
 			}
 		},
 		created() {
@@ -114,10 +163,10 @@
 			},
 			onInput(arg){
 			   arg = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0]: "";
-			   this.keyword = arg.replace(/\s/g, "");
-			   void 0 !== this.keyword ? this.pageState = "suggest":this.pageState = "hot";
-			   if (clearTimeout(this.to), !(arg = (arg || "").replace(/\s/g, "")) || arg !== this.keyword) {
-					return this.keyword = arg;
+			   this.keywordValue = arg.replace(/\s/g, "");
+			   void 0 !== this.keywordValue ? this.pageState = "suggest":this.pageState = "hot";
+			   if (clearTimeout(this.to), !(arg = (arg || "").replace(/\s/g, "")) || arg !== this.keywordValue) {
+					return this.keywordValue = arg;
 			   }
 			   var that = this;
 			   this.to = setTimeout(function() {
@@ -125,18 +174,21 @@
 			   }, that.inputDelay);
 			},
 			getKeyword(){
-               return this.keyword;
+               return this.keywordValue;
 			},
 			onSuggest() {
-				
 				this.inputShowClear = Boolean(this.getKeyword());
-				console.log(this.inputShowClear);
 				this.loadSuggest();
 			},
 			loadSuggest(){
 			   var that = this;
-               suggest().then(function(res){
+               suggest_non().then(function(res){
 				   let result = res.data;
+				   if(result.suggest.length==0){
+					  that.pageState  = "search";
+					  that.loadSearch();
+					  return;
+				   }
 				   that.suggest = result.suggest;
 			   });
 			},
@@ -144,7 +196,28 @@
 			   food(val).then(function(res){
 					let result = res.data;
 			   });
-			}
+			},
+		    onDeleteKey() {
+				this.searchManager.reset();
+				this.searchTicket.cancel();
+				this.suggestTicket.cancel();
+				this.pageState = "hot";
+				this.keywordValue = "";
+				this.inputFocus = true;
+				this. inputShowClear = false;
+			},
+			loadSearch(){
+			   var that = this;	
+               homepage().then(function(res){
+                  that.recommend_poi_list = res.data.poilist;
+			   });
+			},
+			onScrollBottom: function() {
+			   this.is_scroll_loading = true; 
+			   this.data.has_next_page = true;
+			   this.page_index += 1;
+			   this.loadSearch();
+            },
 		}
 	}
 </script>
